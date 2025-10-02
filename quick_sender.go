@@ -15,7 +15,7 @@ func NewQuickSender(user, password, server, from string, to []string) *QuickSend
 }
 func (qs *QuickSender) Send(subject, body string) error {
 	m := Mail{
-		MT:      plaintText,
+		MT:      PlainText,
 		From:    qs.from,
 		To:      qs.to,
 		Subject: subject,

@@ -2,18 +2,20 @@ package exchangesmtp
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"mime"
 	"mime/quotedprintable"
 	"os"
+	"strings"
 )
 
 type MailType int
 
 const (
-	plaintText MailType = iota
+	PlainText MailType = iota
 	HTML
 )
 
@@ -44,6 +46,13 @@ type AttachmentFile struct {
 	Body        []byte
 }
 
+// generateBoundary creates a random MIME boundary
+func generateBoundary() string {
+	var buf [16]byte
+	rand.Read(buf[:])
+	return fmt.Sprintf("boundary-%x", buf[:])
+}
+
 func (m *Mail) ToBytes() ([]byte, error) {
 	msg := bytes.NewBuffer(nil)
 
@@ -55,14 +64,14 @@ func (m *Mail) ToBytes() ([]byte, error) {
 		return nil, errors.New("email body is empty")
 	}
 
-	// write headers, skipp Cc, Bcc
+	// write headers
 	msg.WriteString(fmt.Sprintf("From: %s\r\n", m.From))
-	msg.WriteString(fmt.Sprintf("To: %s\r\n", m.To))
+	msg.WriteString(fmt.Sprintf("To: %s\r\n", strings.Join(m.To, ", ")))
 	sbj := mime.QEncoding.Encode("utf-8", m.Subject)
 	msg.WriteString(fmt.Sprintf("Subject: %s\r\n", sbj))
 	msg.WriteString("MIME-Version: 1.0\r\n")
 
-	boundary := "exchange-smtp"
+	boundary := generateBoundary()
 	if len(m.Attachment) > 0 {
 		msg.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\r\n\r\n", boundary))
 		msg.WriteString(fmt.Sprintf("--%s\r\n", boundary))
@@ -86,8 +95,13 @@ func (m *Mail) ToBytes() ([]byte, error) {
 	if len(m.Attachment) > 0 {
 		for _, file := range m.Attachment {
 			msg.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
-			msg.WriteString(fmt.Sprintf("Content-Type: application/octet-stream; name=\"%s\"\r\n", file.Name))
-			msg.WriteString(fmt.Sprintf("Content-Transfer-Encoding: base64\r\n"))
+
+			contentType := file.ContentType
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			msg.WriteString(fmt.Sprintf("Content-Type: %s; name=\"%s\"\r\n", contentType, file.Name))
+			msg.WriteString("Content-Transfer-Encoding: base64\r\n")
 			msg.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", file.Name))
 
 			if len(file.Body) > 0 {
