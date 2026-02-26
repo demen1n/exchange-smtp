@@ -9,7 +9,7 @@ Exchange dropped support for PLAIN auth back in 2017. This library implements LO
 ## Install
 
 ```bash
-go get github.com/yourusername/exchangesmtp
+go get github.com/demen1n/exchange-smtp
 ```
 
 ## Usage

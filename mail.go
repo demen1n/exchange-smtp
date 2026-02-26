@@ -41,6 +41,7 @@ type Mail struct {
 
 	From    string
 	To      []string
+	Cc      []string
 	Subject string
 	Body    string
 
@@ -94,6 +95,7 @@ func (m *Mail) ToBytes() ([]byte, error) {
 	// write headers
 	msg.WriteString(fmt.Sprintf("From: %s\r\n", m.From))
 	msg.WriteString(fmt.Sprintf("To: %s\r\n", strings.Join(m.To, ", ")))
+	msg.WriteString(fmt.Sprintf("Cc: %s\r\n", strings.Join(m.Cc, ", ")))
 	sbj := mime.QEncoding.Encode("utf-8", m.Subject)
 	msg.WriteString(fmt.Sprintf("Subject: %s\r\n", sbj))
 	msg.WriteString("MIME-Version: 1.0\r\n")
