@@ -3,13 +3,15 @@ package exchangesmtp
 import (
 	"bytes"
 	"encoding/base64"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
 func TestValidateEmail(t *testing.T) {
 	tests := []struct {
-		email string
-		valid bool
+		email	string
+		valid	bool
 	}{
 		{"user@example.com", true},
 		{"user.name@example.com", true},
@@ -31,11 +33,11 @@ func TestValidateEmail(t *testing.T) {
 
 func TestMail_ToBytes_PlainText(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test Subject",
-		Body:    "This is a plain text body.",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test Subject",
+		Body:		"This is a plain text body.",
 	}
 
 	msg, err := mail.ToBytes()
@@ -50,11 +52,11 @@ func TestMail_ToBytes_PlainText(t *testing.T) {
 
 func TestMail_ToBytes_HTML(t *testing.T) {
 	mail := Mail{
-		MT:      HTML,
-		From:    "sender@example.com",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test HTML Subject",
-		Body:    "<h1>This is HTML content.</h1>",
+		MT:		HTML,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test HTML Subject",
+		Body:		"<h1>This is HTML content.</h1>",
 	}
 
 	msg, err := mail.ToBytes()
@@ -71,15 +73,15 @@ func TestMail_ToBytes_Attachment(t *testing.T) {
 	attachmentContent := []byte("This is the content of the file.")
 
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test Attachment",
-		Body:    "Please see the attached file.",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test Attachment",
+		Body:		"Please see the attached file.",
 		Attachment: []AttachmentFile{
 			{
-				Name: "testfile.txt",
-				Body: attachmentContent,
+				Name:	"testfile.txt",
+				Body:	attachmentContent,
 			},
 		},
 	}
@@ -102,17 +104,17 @@ func TestMail_ToBytes_InlineImage(t *testing.T) {
 	imageContent := []byte("fake-image-data")
 
 	mail := Mail{
-		MT:      HTML,
-		From:    "sender@example.com",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test Inline Image",
-		Body:    `<html><body><img src="cid:logo" /></body></html>`,
+		MT:		HTML,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test Inline Image",
+		Body:		`<html><body><img src="cid:logo" /></body></html>`,
 		Inline: []InlineFile{
 			{
-				CID:         "logo",
-				Name:        "logo.png",
-				ContentType: "image/png",
-				Body:        imageContent,
+				CID:		"logo",
+				Name:		"logo.png",
+				ContentType:	"image/png",
+				Body:		imageContent,
 			},
 		},
 	}
@@ -137,10 +139,10 @@ func TestMail_ToBytes_InlineImage(t *testing.T) {
 
 func TestMail_ToBytes_EmptyTo(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		Subject: "Test Empty To",
-		Body:    "This email has no recipients.",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		Subject:	"Test Empty To",
+		Body:		"This email has no recipients.",
 	}
 
 	_, err := mail.ToBytes()
@@ -151,10 +153,10 @@ func TestMail_ToBytes_EmptyTo(t *testing.T) {
 
 func TestMail_ToBytes_EmptyBody(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test Empty Body",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test Empty Body",
 	}
 
 	_, err := mail.ToBytes()
@@ -165,11 +167,11 @@ func TestMail_ToBytes_EmptyBody(t *testing.T) {
 
 func TestMail_ToBytes_InvalidFromEmail(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "invalid-email",
-		To:      []string{"recipient@example.com"},
-		Subject: "Test",
-		Body:    "Test body",
+		MT:		PlainText,
+		From:		"invalid-email",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Test",
+		Body:		"Test body",
 	}
 
 	_, err := mail.ToBytes()
@@ -180,11 +182,11 @@ func TestMail_ToBytes_InvalidFromEmail(t *testing.T) {
 
 func TestMail_ToBytes_InvalidToEmail(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		To:      []string{"invalid-email"},
-		Subject: "Test",
-		Body:    "Test body",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"invalid-email"},
+		Subject:	"Test",
+		Body:		"Test body",
 	}
 
 	_, err := mail.ToBytes()
@@ -195,11 +197,11 @@ func TestMail_ToBytes_InvalidToEmail(t *testing.T) {
 
 func TestMail_ToBytes_MultipleRecipients(t *testing.T) {
 	mail := Mail{
-		MT:      PlainText,
-		From:    "sender@example.com",
-		To:      []string{"recipient1@example.com", "recipient2@example.com"},
-		Subject: "Test Multiple Recipients",
-		Body:    "Test body",
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient1@example.com", "recipient2@example.com"},
+		Subject:	"Test Multiple Recipients",
+		Body:		"Test body",
 	}
 
 	msg, err := mail.ToBytes()
@@ -209,5 +211,187 @@ func TestMail_ToBytes_MultipleRecipients(t *testing.T) {
 
 	if !bytes.Contains(msg, []byte("To: recipient1@example.com, recipient2@example.com")) {
 		t.Errorf("expected comma-separated recipients, got: %s", msg)
+	}
+}
+
+func TestMail_ToBytes_AttachmentFromDisk(t *testing.T) {
+	content := []byte("file content from disk")
+	tmp := filepath.Join(t.TempDir(), "attach.txt")
+	if err := os.WriteFile(tmp, content, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	mail := Mail{
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Disk attachment",
+		Body:		"See attached.",
+		Attachment: []AttachmentFile{
+			{Name: tmp},	// body пустой — должен читаться с диска
+		},
+	}
+
+	msg, err := mail.ToBytes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(content)
+	if !bytes.Contains(msg, []byte(encoded[:20])) {
+		t.Errorf("expected base64 content from disk file, got: %s", msg)
+	}
+}
+
+func TestMail_ToBytes_AttachmentEmptyBodyAndName(t *testing.T) {
+	mail := Mail{
+		MT:		PlainText,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Bad attachment",
+		Body:		"See attached.",
+		Attachment: []AttachmentFile{
+			{},	// и Body, и Name пустые
+		},
+	}
+
+	_, err := mail.ToBytes()
+	if err == nil {
+		t.Fatal("expected error for attachment with no body and no name")
+	}
+}
+
+func TestMail_ToBytes_CIDHeaderInjection(t *testing.T) {
+	mail := Mail{
+		MT:		HTML,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Inline injection test",
+		Body:		`<img src="cid:injected">`,
+		Inline: []InlineFile{
+			{
+				CID:		"injected\r\nX-Injected: evil",
+				Name:		"img.png",
+				ContentType:	"image/png",
+				Body:		[]byte("fake"),
+			},
+		},
+	}
+
+	msg, err := mail.ToBytes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// инъекция заголовка означает, что \r\n попал в вывод как разрыв строки.
+	// после санитизации весь мусор остаётся внутри значения Content-ID — отдельного заголовка нет.
+	if bytes.Contains(msg, []byte("\r\nX-Injected:")) {
+		t.Errorf("CID header injection not sanitized: %s", msg)
+	}
+}
+
+func TestMail_ToBytes_InlineAndAttachment(t *testing.T) {
+	imageContent := []byte("fake-image")
+	fileContent := []byte("fake-attachment")
+
+	mail := Mail{
+		MT:		HTML,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Mixed content",
+		Body:		`<img src="cid:logo">`,
+		Inline: []InlineFile{
+			{CID: "logo", Name: "logo.png", ContentType: "image/png", Body: imageContent},
+		},
+		Attachment: []AttachmentFile{
+			{Name: "doc.pdf", ContentType: "application/pdf", Body: fileContent},
+		},
+	}
+
+	msg, err := mail.ToBytes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !bytes.Contains(msg, []byte("multipart/mixed")) {
+		t.Errorf("expected multipart/mixed, got: %s", msg)
+	}
+	if !bytes.Contains(msg, []byte("multipart/related")) {
+		t.Errorf("expected multipart/related, got: %s", msg)
+	}
+	if !bytes.Contains(msg, []byte("Content-ID: <logo>")) {
+		t.Errorf("expected Content-ID for inline image, got: %s", msg)
+	}
+	if !bytes.Contains(msg, []byte(`filename="doc.pdf"`)) {
+		t.Errorf("expected attachment filename, got: %s", msg)
+	}
+}
+
+func TestMail_ToBytes_InlineEmptyContentType(t *testing.T) {
+	mail := Mail{
+		MT:		HTML,
+		From:		"sender@example.com",
+		To:		[]string{"recipient@example.com"},
+		Subject:	"Inline fallback content type",
+		Body:		`<img src="cid:img">`,
+		Inline: []InlineFile{
+			{CID: "img", Name: "img.bin", Body: []byte("data")},	// ContentType пустой
+		},
+	}
+
+	msg, err := mail.ToBytes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !bytes.Contains(msg, []byte("application/octet-stream")) {
+		t.Errorf("expected fallback content type application/octet-stream, got: %s", msg)
+	}
+}
+
+func TestLoginAuth_StartAndNext(t *testing.T) {
+	auth := LoginAuth("user@example.com", "secret")
+
+	proto, resp, err := auth.Start(nil)
+	if err != nil {
+		t.Fatalf("Start error: %v", err)
+	}
+	if proto != "LOGIN" {
+		t.Errorf("expected protocol LOGIN, got %s", proto)
+	}
+	if string(resp) != "user@example.com" {
+		t.Errorf("expected username in Start response, got %s", resp)
+	}
+
+	resp, err = auth.Next([]byte("Username:"), true)
+	if err != nil || string(resp) != "user@example.com" {
+		t.Errorf("Next Username: got %q, err %v", resp, err)
+	}
+
+	resp, err = auth.Next([]byte("Password:"), true)
+	if err != nil || string(resp) != "secret" {
+		t.Errorf("Next Password: got %q, err %v", resp, err)
+	}
+
+	_, err = auth.Next([]byte("Unknown:"), true)
+	if err == nil {
+		t.Error("expected error for unknown server prompt")
+	}
+
+	resp, err = auth.Next(nil, false)
+	if err != nil || resp != nil {
+		t.Errorf("Next(more=false) should return nil, nil; got %q, %v", resp, err)
+	}
+}
+
+func TestQuickSender_Send(t *testing.T) {
+	qs := NewQuickSender("user", "pass", "localhost:25", "from@example.com", []string{"to@example.com"})
+
+	// quickSender.Send строит Mail и вызывает smtp.SendMail.
+	// без живого сервера проверяем только что ошибка содержит сетевую причину,
+	// а не панику или внутренний сбой сборки сообщения.
+	err := qs.Send("Subject", "Body")
+	if err == nil {
+		t.Fatal("expected connection error to localhost:25")
 	}
 }

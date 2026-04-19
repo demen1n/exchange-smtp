@@ -16,7 +16,7 @@ import (
 type MailType int
 
 const (
-	PlainText MailType = iota
+	PlainText	MailType	= iota
 	HTML
 )
 
@@ -37,29 +37,29 @@ func ValidateEmail(email string) bool {
 
 // Mail is a struct for two types of email: plain text and html like.
 type Mail struct {
-	MT MailType
+	MT	MailType
 
-	From    string
-	To      []string
-	Cc      []string
-	Subject string
-	Body    string
+	From	string
+	To	[]string
+	Cc	[]string
+	Subject	string
+	Body	string
 
-	Attachment []AttachmentFile
-	Inline     []InlineFile // для inline-картинок
+	Attachment	[]AttachmentFile
+	Inline		[]InlineFile	// для inline-картинок
 }
 
 type AttachmentFile struct {
-	Name        string
-	ContentType string
-	Body        []byte
+	Name		string
+	ContentType	string
+	Body		[]byte
 }
 
 type InlineFile struct {
-	CID         string // Content-ID for link in HTML (ex: "logo")
-	Name        string
-	ContentType string // ex: "image/png"
-	Body        []byte
+	CID		string	// content-ID for link in HTML (ex: "logo")
+	Name		string
+	ContentType	string	// ex: "image/png"
+	Body		[]byte
 }
 
 // generateBoundary creates a random MIME boundary
@@ -80,12 +80,12 @@ func (m *Mail) ToBytes() ([]byte, error) {
 		return nil, errors.New("email body is empty")
 	}
 
-	// From valid
+	// from valid
 	if !ValidateEmail(m.From) {
 		return nil, fmt.Errorf("invalid From email address: %s", m.From)
 	}
 
-	// To valid
+	// to valid
 	for _, addr := range m.To {
 		if !ValidateEmail(addr) {
 			return nil, fmt.Errorf("invalid To email address: %s", addr)
