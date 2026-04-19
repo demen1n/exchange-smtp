@@ -140,7 +140,8 @@ func (m *Mail) ToBytes() ([]byte, error) {
 
 			msg.WriteString(fmt.Sprintf("Content-Type: %s; name=\"%s\"\r\n", contentType, file.Name))
 			msg.WriteString("Content-Transfer-Encoding: base64\r\n")
-			msg.WriteString(fmt.Sprintf("Content-ID: <%s>\r\n", file.CID))
+			cid := strings.NewReplacer("\r", "", "\n", "").Replace(file.CID)
+			msg.WriteString(fmt.Sprintf("Content-ID: <%s>\r\n", cid))
 			msg.WriteString(fmt.Sprintf("Content-Disposition: inline; filename=\"%s\"\r\n", file.Name))
 
 			if err := m.writeBytes(msg, file.Body); err != nil {
@@ -181,10 +182,12 @@ func (m *Mail) ToBytes() ([]byte, error) {
 				if err := m.writeBytes(msg, file.Body); err != nil {
 					return nil, err
 				}
-			} else {
+			} else if file.Name != "" {
 				if err := m.writeFile(msg, file.Name); err != nil {
 					return nil, err
 				}
+			} else {
+				return nil, fmt.Errorf("attachment has no body and no file name")
 			}
 		}
 	}
