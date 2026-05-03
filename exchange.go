@@ -22,7 +22,7 @@ func (ms *MailSender) Send(mail Mail) error {
 		return err
 	}
 
-	if err := smtp.SendMail(ms.server, ms.auth, mail.From, mail.To, b); err != nil {
+	if err := smtp.SendMail(ms.server, ms.auth, mail.From, mail.AllRecipients(), b); err != nil {
 		return err
 	}
 

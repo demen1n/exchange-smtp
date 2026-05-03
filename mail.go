@@ -16,7 +16,7 @@ import (
 type MailType int
 
 const (
-	PlainText	MailType	= iota
+	PlainText MailType = iota
 	HTML
 )
 
@@ -37,29 +37,36 @@ func ValidateEmail(email string) bool {
 
 // Mail is a struct for two types of email: plain text and html like.
 type Mail struct {
-	MT	MailType
+	MT MailType
 
-	From	string
-	To	[]string
-	Cc	[]string
-	Subject	string
-	Body	string
+	From    string
+	To      []string
+	Cc      []string
+	Subject string
+	Body    string
 
-	Attachment	[]AttachmentFile
-	Inline		[]InlineFile	// для inline-картинок
+	Attachment []AttachmentFile
+	Inline     []InlineFile // для inline-картинок
 }
 
 type AttachmentFile struct {
-	Name		string
-	ContentType	string
-	Body		[]byte
+	Name        string
+	ContentType string
+	Body        []byte
 }
 
 type InlineFile struct {
-	CID		string	// content-ID for link in HTML (ex: "logo")
-	Name		string
-	ContentType	string	// ex: "image/png"
-	Body		[]byte
+	CID         string // content-ID for link in HTML (ex: "logo")
+	Name        string
+	ContentType string // ex: "image/png"
+	Body        []byte
+}
+
+func (m *Mail) AllRecipients() []string {
+	r := make([]string, 0, len(m.To)+len(m.Cc))
+	r = append(r, m.To...)
+	r = append(r, m.Cc...)
+	return r
 }
 
 // generateBoundary creates a random MIME boundary
