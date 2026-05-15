@@ -13,7 +13,7 @@ type loginAuth struct {
 
 // Start begins an authentication with a server.
 func (a *loginAuth) Start(info *smtp.ServerInfo) (string, []byte, error) {
-	return "LOGIN", []byte(a.username), nil
+	return "LOGIN", nil, nil
 }
 
 // Next continues the authentication.

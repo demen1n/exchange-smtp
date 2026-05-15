@@ -21,10 +21,5 @@ func (ms *MailSender) Send(mail Mail) error {
 	if err != nil {
 		return err
 	}
-
-	if err := smtp.SendMail(ms.server, ms.auth, mail.From, mail.AllRecipients(), b); err != nil {
-		return err
-	}
-
-	return nil
+	return smtp.SendMail(ms.server, ms.auth, mail.From, mail.AllRecipients(), b)
 }

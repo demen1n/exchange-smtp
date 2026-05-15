@@ -195,6 +195,40 @@ func TestMail_ToBytes_InvalidToEmail(t *testing.T) {
 	}
 }
 
+func TestMail_ToBytes_InvalidCcEmail(t *testing.T) {
+	mail := Mail{
+		MT:      PlainText,
+		From:    "sender@example.com",
+		To:      []string{"recipient@example.com"},
+		Cc:      []string{"invalid-cc"},
+		Subject: "Test",
+		Body:    "Test body",
+	}
+
+	_, err := mail.ToBytes()
+	if err == nil || !bytes.Contains([]byte(err.Error()), []byte("invalid Cc email")) {
+		t.Errorf("expected error about invalid Cc email, got: %v", err)
+	}
+}
+
+func TestMail_ToBytes_NoCcHeader(t *testing.T) {
+	mail := Mail{
+		MT:      PlainText,
+		From:    "sender@example.com",
+		To:      []string{"recipient@example.com"},
+		Subject: "No CC",
+		Body:    "Body",
+	}
+
+	msg, err := mail.ToBytes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if bytes.Contains(msg, []byte("Cc:")) {
+		t.Errorf("expected no Cc header when Cc is empty, got: %s", msg)
+	}
+}
+
 func TestMail_ToBytes_MultipleRecipients(t *testing.T) {
 	mail := Mail{
 		MT:		PlainText,
@@ -359,8 +393,8 @@ func TestLoginAuth_StartAndNext(t *testing.T) {
 	if proto != "LOGIN" {
 		t.Errorf("expected protocol LOGIN, got %s", proto)
 	}
-	if string(resp) != "user@example.com" {
-		t.Errorf("expected username in Start response, got %s", resp)
+	if resp != nil {
+		t.Errorf("expected nil initial response from Start, got %q", resp)
 	}
 
 	resp, err = auth.Next([]byte("Username:"), true)
